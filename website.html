@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Vulnerability Intel</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700&display=swap');
+		:root { --ink:#4169e1; --panel:#fffef5; --line:#a9c7e7; --accent:#ffea00; --muted:#2b4fae; }
+		* { box-sizing:border-box; }
+		body { margin:0; min-height:100vh; color:var(--ink); background-color:#edf4ff; background-image:url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 31.5H32M31.5 0V32' fill='none' stroke='%234169e1' stroke-opacity='.13'/%3E%3C/svg%3E"); font-family:'DM Mono',monospace; }
+		.app { width:min(940px,100%); min-height:100vh; margin:auto; padding:34px 22px 22px; display:flex; flex-direction:column; }
+		header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid var(--ink); box-shadow:0 7px 0 var(--accent); padding-bottom:20px; }
+		h1 { font:700 30px/1 'Syne',sans-serif; margin:0; letter-spacing:0; }
+		.tag { color:var(--ink); font-size:12px; padding-top:7px; }
+		#chat { flex:1; padding:28px 0; display:flex; flex-direction:column; gap:18px; overflow:auto; }
+		.message { max-width:86%; padding:16px 18px; border:1px solid var(--line); border-radius:7px; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.55; font-size:14px; }
+		.assistant { align-self:flex-start; background:var(--panel); box-shadow:4px 4px 0 var(--line); }
+		.user { align-self:flex-end; background:var(--ink); color:white; border-color:var(--ink); }
+		.label { display:block; color:var(--muted); font-size:10px; margin-bottom:7px; text-transform:uppercase; }
+		.user .label { color:#b9d9fa; }
+		form { display:flex; gap:10px; border-top:2px solid var(--ink); padding-top:18px; }
+		input { min-width:0; flex:1; padding:14px; border:1px solid var(--ink); border-radius:4px; background:var(--panel); color:var(--ink); font:14px 'DM Mono',monospace; }
+		button { border:0; border-radius:4px; background:var(--accent); color:#082a5c; cursor:pointer; padding:0 20px; font:500 13px 'DM Mono',monospace; }
+		button:disabled { opacity:.55; cursor:wait; }
+		.hints { color:var(--muted); font-size:11px; padding:14px 0 0; }
+		@media (max-width:600px) { .app { padding:22px 14px 14px; } h1 { font-size:24px; } .tag { display:none; } .message { max-width:94%; } button { padding:0 13px; } }
+	</style>
+</head>
+<body>
+	<main class="app">
+		<header><h1>Vulnerability Intel</h1><span class="tag">NVD / CWE / EPSS</span></header>
+		<section id="chat" aria-live="polite"><article class="message assistant"><span class="label">Analyst</span>Ask about a CVE, CWE, CVSS score, risk priority, or recent product vulnerabilities.</article></section>
+		<form id="form"><input id="question" aria-label="Security question" autocomplete="off" placeholder="What is the risk of CVE-2021-44228?" required><button id="send" type="submit">Send</button></form>
+		<div class="hints">Try: CVE-2024-3094 | What is SQL injection? | recent openssl vulnerabilities</div>
+	</main>
+	<script>
+		const API_URL = 'http://127.0.0.1:8000/api/chat';
+		const chat = document.querySelector('#chat');
+		const form = document.querySelector('#form');
+		const input = document.querySelector('#question');
+		const send = document.querySelector('#send');
+
+		function add(role, text) {
+			const item = document.createElement('article');
+			item.className = `message ${role}`;
+			const label = document.createElement('span');
+			label.className = 'label';
+			label.textContent = role === 'user' ? 'You' : 'Analyst';
+			item.append(label, document.createTextNode(text));
+			chat.append(item);
+			item.scrollIntoView({ behavior: 'smooth', block: 'end' });
+			return item;
+		}
+
+		form.addEventListener('submit', async event => {
+			event.preventDefault();
+			const question = input.value.trim();
+			if (!question) return;
+			add('user', question);
+			input.value = '';
+			send.disabled = true;
+			const pending = add('assistant', 'Looking up current vulnerability intelligence...');
+			try {
+				const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question }) });
+				const data = await response.json();
+				pending.lastChild.textContent = data.answer || data.error || 'No response received.';
+			} catch (error) {
+				pending.lastChild.textContent = 'Request failed. Start the Python chat API with: python web_app.py';
+			} finally {
+				send.disabled = false;
+				input.focus();
+			}
+		});
+	</script>
+</body>
+</html>
