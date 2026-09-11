@@ -4,8 +4,6 @@ A CLI chatbot that answers security questions using live data from the NVD
 CVE API and the MITRE CWE feed — powered by Claude via LangChain, with a
 composite **risk score** that goes beyond raw CVSS.
 
-## What's different from the original OpenAI version
-
 - Uses **Claude** (via `langchain-anthropic`) instead of OpenAI for the
   natural-language agent.
 - Adds a **risk scoring** tool (`tools/risk_tool.py`) that combines CVSS
@@ -14,7 +12,7 @@ composite **risk score** that goes beyond raw CVSS.
   single 0–100 risk score and tier (LOW/MEDIUM/HIGH/CRITICAL). This answers
   "what should I patch first?" instead of just "how bad is this in theory?".
 
-## Setup
+## Setup:
 
 1. Create and activate a virtual environment:
    ```
@@ -32,7 +30,7 @@ composite **risk score** that goes beyond raw CVSS.
    python main.py
    ```
 
-## Browser chat interface
+## Browser chat interface:
 
 Start the chat API:
 
@@ -60,7 +58,6 @@ What year was Heartbleed discovered?
 List openssl vulnerabilities in 2025
 recent openssl vulnerabilities
 ```
-
 ## Project layout
 
 ```
