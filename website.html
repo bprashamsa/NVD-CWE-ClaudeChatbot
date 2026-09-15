@@ -15,10 +15,13 @@
 		.tag { color:var(--panel); font-size:12px; padding-top:7px; font-family:'Inter',sans-serif; }
 		#chat { flex:1; padding:28px 0; display:flex; flex-direction:column; gap:18px; overflow:auto; }
 		.message { max-width:86%; padding:16px 18px; border:1px solid var(--line); border-radius:7px; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.55; font-size:14px; font-family:'Inter',sans-serif; }
+		.message-body { display:inline; }
 		.assistant { align-self:flex-start; background:rgba(245,245,220,0.08); color:var(--panel); box-shadow:4px 4px 0 var(--accent); }
+		.assistant.typing .message-body::after { content:''; display:inline-block; width:2px; height:1.1em; background:var(--line); margin-left:6px; vertical-align:-2px; animation:blink .85s steps(1) infinite; }
 		.user { align-self:flex-end; background:var(--ink); color:var(--panel); border-color:var(--ink); }
 		.label { display:block; color:var(--line); font-size:10px; margin-bottom:7px; text-transform:uppercase; font-family:'Space Grotesk',sans-serif; }
 		.user .label { color:#f7d8c2; }
+		@keyframes blink { 50% { opacity:0; } }
 		form { display:flex; gap:10px; border-top:2px solid var(--ink); padding-top:18px; }
 		input { min-width:0; flex:1; padding:14px; border:1px solid var(--ink); border-radius:4px; background:rgba(245,245,220,0.08); color:var(--panel); font:14px 'Inter',sans-serif; }
 		input::placeholder { color:rgba(245,245,220,0.7); }
@@ -31,7 +34,7 @@
 <body>
 	<main class="app">
 		<header><h1>Vulnerability Intel</h1><span class="tag">NVD / CWE / EPSS</span></header>
-		<section id="chat" aria-live="polite"><article class="message assistant"><span class="label">Analyst</span>Ask about a CVE, CWE, CVSS score, risk priority, or recent product vulnerabilities.</article></section>
+		<section id="chat" aria-live="polite"><article class="message assistant"><span class="label">Analyst</span><span class="message-body">Ask about a CVE, CWE, CVSS score, risk priority, or recent product vulnerabilities.</span></article></section>
 		<form id="form"><input id="question" aria-label="Security question" autocomplete="off" placeholder="What is the risk of CVE-2021-44228?" required><button id="send" type="submit">Send</button></form>
 		<div class="hints">Try: CVE-2024-3094 | What is SQL injection? | recent openssl vulnerabilities</div>
 	</main>
@@ -41,17 +44,42 @@
 		const form = document.querySelector('#form');
 		const input = document.querySelector('#question');
 		const send = document.querySelector('#send');
+		const welcomeText = 'Ask about a CVE, CWE, CVSS score, risk priority, or recent product vulnerabilities.';
 
-		function add(role, text) {
+		function add(role, text = '') {
 			const item = document.createElement('article');
 			item.className = `message ${role}`;
 			const label = document.createElement('span');
 			label.className = 'label';
 			label.textContent = role === 'user' ? 'You' : 'Analyst';
-			item.append(label, document.createTextNode(text));
+			const body = document.createElement('span');
+			body.className = 'message-body';
+			body.textContent = text;
+			item.append(label, body);
 			chat.append(item);
 			item.scrollIntoView({ behavior: 'smooth', block: 'end' });
-			return item;
+			return { item, body };
+		}
+
+		function animateTyping(target, text, speed = 18) {
+			target.textContent = '';
+			target.parentElement.classList.add('typing');
+			let index = 0;
+			const tick = () => {
+				target.textContent = text.slice(0, index);
+				index += 1;
+				if (index <= text.length) {
+					setTimeout(tick, speed);
+				} else {
+					target.parentElement.classList.remove('typing');
+				}
+			};
+			tick();
+		}
+
+		const welcomeMessage = document.querySelector('#chat .message.assistant .message-body');
+		if (welcomeMessage) {
+			animateTyping(welcomeMessage, welcomeText, 16);
 		}
 
 		form.addEventListener('submit', async event => {
@@ -61,13 +89,14 @@
 			add('user', question);
 			input.value = '';
 			send.disabled = true;
-			const pending = add('assistant', 'Looking up current vulnerability intelligence...');
+			const pending = add('assistant');
+			animateTyping(pending.body, 'Looking up current vulnerability intelligence...');
 			try {
 				const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question }) });
 				const data = await response.json();
-				pending.lastChild.textContent = data.answer || data.error || 'No response received.';
+				animateTyping(pending.body, data.answer || data.error || 'No response received.');
 			} catch (error) {
-				pending.lastChild.textContent = 'Request failed. Start the Python chat API with: python web_app.py';
+				animateTyping(pending.body, 'Request failed. Start the Python chat API with: python web_app.py');
 			} finally {
 				send.disabled = false;
 				input.focus();
