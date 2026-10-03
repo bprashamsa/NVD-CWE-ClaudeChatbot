@@ -1,5 +1,5 @@
 # NVD + CWE + Risk Chatbot Using Claude
-
+Remember to never share your API key!
 A CLI chatbot that answers security questions using live data from the NVD
 CVE API and the MITRE CWE feed — powered by Claude via LangChain, with a
 composite **risk score** that goes beyond raw CVSS.
