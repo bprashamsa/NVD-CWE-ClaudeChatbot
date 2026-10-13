@@ -5,7 +5,7 @@ A CLI chatbot that answers security questions using live data from the NVD
 CVE API and the MITRE CWE feed — powered by Claude via LangChain, with a
 composite **risk score** that goes beyond raw CVSS.
 
-- Uses **Claude** (via `langchain-anthropic`) instead of OpenAI for the
+- Uses **Claude** (via `langchain-anthropic`) for the
   natural-language agent.
 - Adds a **risk scoring** tool (`tools/risk_tool.py`) that combines CVSS
   severity with **EPSS** (Exploit Prediction Scoring System) — a free
