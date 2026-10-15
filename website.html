@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Vulnerability Intel</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+		:root { --ink:#E35336; --panel:#F5F5DC; --line:#F4A460; --accent:#A0522D; --muted:#F5F5DC; --bg:#2a120d; --bg-2:#4b2016; }
+		* { box-sizing:border-box; }
+		body { margin:0; min-height:100vh; color:var(--panel); background:var(--bg); font-family:'Inter',sans-serif; }
+		.app { width:min(940px,100%); min-height:100vh; margin:auto; padding:34px 22px 22px; display:flex; flex-direction:column; }
+		header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid var(--ink); box-shadow:0 7px 0 var(--accent); padding-bottom:20px; }
+		h1 { font:700 30px/1 'Space Grotesk',sans-serif; margin:0; letter-spacing:0; color:var(--panel); }
+		.tag { color:var(--panel); font-size:12px; padding-top:7px; font-family:'Inter',sans-serif; }
+		#chat { flex:1; padding:28px 0; display:flex; flex-direction:column; gap:18px; overflow:auto; }
+		.message { max-width:86%; padding:16px 18px; border:1px solid var(--line); border-radius:7px; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.55; font-size:14px; font-family:'Inter',sans-serif; }
+		.message-body { display:inline; }
+		.assistant { align-self:flex-start; background:rgba(245,245,220,0.08); color:var(--panel); box-shadow:4px 4px 0 var(--accent); }
+		.assistant.typing .message-body::after { content:''; display:inline-block; width:2px; height:1.1em; background:var(--line); margin-left:6px; vertical-align:-2px; animation:blink .85s steps(1) infinite; }
+		.user { align-self:flex-end; background:var(--ink); color:var(--panel); border-color:var(--ink); }
+		.label { display:block; color:var(--line); font-size:10px; margin-bottom:7px; text-transform:uppercase; font-family:'Space Grotesk',sans-serif; }
+		.user .label { color:#f7d8c2; }
+		@keyframes blink { 50% { opacity:0; } }
+		form { display:flex; gap:10px; border-top:2px solid var(--ink); padding-top:18px; }
+		input { min-width:0; flex:1; padding:14px; border:1px solid var(--ink); border-radius:4px; background:rgba(245,245,220,0.08); color:var(--panel); font:14px 'Inter',sans-serif; }
+		input::placeholder { color:rgba(245,245,220,0.7); }
+		button { border:0; border-radius:4px; background:var(--accent); color:var(--panel); cursor:pointer; padding:0 20px; font:600 13px 'Inter',sans-serif; }
+		button:disabled { opacity:.55; cursor:wait; }
+		.hints { color:var(--panel); font-size:11px; padding:14px 0 0; font-family:'Inter',sans-serif; }
+		@media (max-width:600px) { .app { padding:22px 14px 14px; } h1 { font-size:24px; } .tag { display:none; } .message { max-width:94%; } button { padding:0 13px; } }
+	</style>
+</head>
+<body>
+	<main class="app">
+		<header><h1>Vulnerability Intel</h1><span class="tag">NVD / CWE / EPSS</span></header>
+		<section id="chat" aria-live="polite"><article class="message assistant"><span class="label">Analyst</span><span class="message-body">Ask about a CVE, CWE, CVSS score, risk priority, or recent product vulnerabilities.</span></article></section>
+		<form id="form"><input id="question" aria-label="Security question" autocomplete="off" placeholder="What is the risk of CVE-2021-44228?" required><button id="send" type="submit">Send</button></form>
+		<div class="hints">Try: CVE-2024-3094 | What is SQL injection? | recent openssl vulnerabilities</div>
+	</main>
+	<script>
+		const API_URL = 'http://127.0.0.1:8000/api/chat';
+		const chat = document.querySelector('#chat');
+		const form = document.querySelector('#form');
+		const input = document.querySelector('#question');
+		const send = document.querySelector('#send');
+		const welcomeText = 'Ask about a CVE, CWE, CVSS score, risk priority, or recent product vulnerabilities.';
+
+		function add(role, text = '') {
+			const item = document.createElement('article');
+			item.className = `message ${role}`;
+			const label = document.createElement('span');
+			label.className = 'label';
+			label.textContent = role === 'user' ? 'You' : 'Analyst';
+			const body = document.createElement('span');
+			body.className = 'message-body';
+			body.textContent = text;
+			item.append(label, body);
+			chat.append(item);
+			item.scrollIntoView({ behavior: 'smooth', block: 'end' });
+			return { item, body };
+		}
+
+		function animateTyping(target, text, speed = 18) {
+			target.textContent = '';
+			target.parentElement.classList.add('typing');
+			let index = 0;
+			const tick = () => {
+				target.textContent = text.slice(0, index);
+				index += 1;
+				if (index <= text.length) {
+					setTimeout(tick, speed);
+				} else {
+					target.parentElement.classList.remove('typing');
+				}
+			};
+			tick();
+		}
+
+		const welcomeMessage = document.querySelector('#chat .message.assistant .message-body');
+		if (welcomeMessage) {
+			animateTyping(welcomeMessage, welcomeText, 16);
+		}
+
+		form.addEventListener('submit', async event => {
+			event.preventDefault();
+			const question = input.value.trim();
+			if (!question) return;
+			add('user', question);
+			input.value = '';
+			send.disabled = true;
+			const pending = add('assistant');
+			animateTyping(pending.body, 'Looking up current vulnerability intelligence...');
+			try {
+				const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question }) });
+				const data = await response.json();
+				animateTyping(pending.body, data.answer || data.error || 'No response received.');
+			} catch (error) {
+				animateTyping(pending.body, 'Request failed. Start the Python chat API with: python web_app.py');
+			} finally {
+				send.disabled = false;
+				input.focus();
+			}
+		});
+	</script>
+</body>
+</html>
