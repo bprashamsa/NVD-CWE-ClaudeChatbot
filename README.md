@@ -3,6 +3,20 @@
 
 A chatbot you can ask questions about software security flaws. It looks up real, up-to-date information and tells you how urgent each flaw is.
 
+
+## Why I Built This
+
+When I started learning cybersecurity, I felt lost. Every vulnerability came with a code, a score, and pages of technical language, and I didn't know where to begin or what mattered. I kept reading and still felt like I was falling behind.
+
+Overwhelming as it was, I knew that behind every entry in those databases is a real person. Someone's private information, someone's savings, someone's trust. Every flaw is a person who could be affected.
+
+That changed how I saw this field. It also made me think about the students who are where I was, trying to start a career in cybersecurity and getting lost in the same wall of technical language. Some of them give up before they ever reach the part that matters.
+
+I built this chatbot as a place they can turn to that won't keep losing them. You ask a question, and you get an answer that makes sense. You learn what is dangerous, what to fix first, and why it truly matters.
+
+This project is for the student who feels lost, and for the real people on the other side of every vulnerability.
+
+
 ## What It Does
 
 - Answers questions about known security flaws
