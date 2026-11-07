@@ -6,5 +6,6 @@
 - See answers typed out live as they arrive
 - Get example questions right under the chat box
 - Works on both desktop and mobile screens
+- 
 
 The page needs the chat server running to work. Start it with `python web_app.py` first, then open `website.html` with the VS Code Live Server extension.
