@@ -3,7 +3,7 @@
 
 A chatbot you can ask questions about software security flaws. It looks up real, up-to-date information and tells you how urgent each flaw is.
 
-## Why I Built This
+## The Why Behind It:
 
 When I started learning cybersecurity, I felt lost. Every vulnerability came with a code, a score, and pages of technical language, and I didn't know where to begin or what mattered. I kept reading and still felt like I was falling behind.
 
