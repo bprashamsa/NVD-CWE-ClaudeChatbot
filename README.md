@@ -1,7 +1,6 @@
 # Vulnerability Risk Chatbot
 # Previously - NVD-CWE-ClaudeChatbot
 
-A chatbot you can ask questions about software security flaws. It looks up real, up-to-date information and tells you how urgent each flaw is.
 
 
 ## Why I Built This
